@@ -1,0 +1,71 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+dataset_url = "https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv"
+
+iris_data = pd.read_csv(dataset_url)
+
+print("First 5 Rows:")
+print(iris_data.head())
+
+print("\nDataset Shape:", iris_data.shape)
+
+print("\nMissing Values:")
+print(iris_data.isnull().sum())
+
+encoder = LabelEncoder()
+iris_data["species"] = encoder.fit_transform(iris_data["species"])
+
+features = iris_data[["sepal_length", "sepal_width", "petal_length", "petal_width"]]
+target = iris_data["species"]
+
+x_train, x_test, y_train, y_test = train_test_split(
+    features,
+    target,
+    test_size=0.3,
+    random_state=10
+)
+
+model = KNeighborsClassifier(n_neighbors=5)
+model.fit(x_train, y_train)
+
+y_pred = model.predict(x_test)
+
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+plt.figure(figsize=(6,4))
+plt.scatter(y_test, y_pred, s=60)
+plt.xlabel("Actual Species")
+plt.ylabel("Predicted Species")
+plt.title("Actual vs Predicted Species")
+plt.grid(True)
+plt.show()
+
+feature_mean = features.mean()
+
+plt.figure(figsize=(6,4))
+plt.bar(feature_mean.index, feature_mean.values)
+plt.xlabel("Features")
+plt.ylabel("Average Value")
+plt.title("Average Feature Values")
+plt.xticks(rotation=20)
+plt.show()
+
+sample = pd.DataFrame({
+    "sepal_length": [5.1],
+    "sepal_width": [3.5],
+    "petal_length": [1.4],
+    "petal_width": [0.2]
+})
+
+prediction = model.predict(sample)
+
+print("\nPredicted Species:", encoder.inverse_transform(prediction)[0])
